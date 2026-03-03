@@ -2,16 +2,26 @@ import { argv } from "node:process";
 import { setUser, readConfig } from "./config";
 import type { Config } from "./config";
 import type { CommandHandler, CommandsRegistry } from "./commands";
-import { handlerLogin, registerCommand, runCommand } from "./commands";
-function main() {
-  const commands: CommandsRegistry = {
-    login: handlerLogin,
-  };
+import {
+  handlerLogin,
+  handlerRegister,
+  handlerReset,
+  handlerUsers,
+  registerCommand,
+  runCommand,
+} from "./commands";
+async function main() {
+  const commands: CommandsRegistry = {};
+  await registerCommand(commands, "login", handlerLogin);
+  await registerCommand(commands, "register", handlerRegister);
+  await registerCommand(commands, "reset", handlerReset);
+  await registerCommand(commands, "users", handlerUsers);
   const args = argv.slice(2);
-  if (args.length < 2) {
+  if (args.length < 1) {
     console.log("Not enough arguments provided");
     process.exit(1);
   }
-  runCommand(commands, "login", ...args);
+  await runCommand(commands, args[0], ...args);
+  process.exit(0);
 }
 main();
