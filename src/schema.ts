@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   name: text("name").notNull().unique(),
 });
 
-export const feed = pgTable("feeds", {
+export const feeds = pgTable("feeds", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   name: text("name").notNull().unique(),
   url: text("url").notNull().unique(),
