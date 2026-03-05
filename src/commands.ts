@@ -1,6 +1,7 @@
 import { log } from "console";
 import { readConfig, setUser } from "./config";
 import { createUser, getUser, getUsers, resetDb } from "./lib/db/queries/users";
+import { fetchFeed } from "./feed";
 
 export type CommandHandler = (
   cmdName: string,
@@ -56,6 +57,10 @@ export async function handlerUsers(cmdName: string, ...args: string[]) {
       console.log(`* ${user.name}`);
     }
   }
+}
+export async function handlerAggregator(cmdName: string, ...args: string[]) {
+  const res = await fetchFeed("https://www.wagslane.dev/index.xml");
+  console.log(JSON.stringify(res, null, 2));
 }
 export async function runCommand(
   registry: CommandsRegistry,

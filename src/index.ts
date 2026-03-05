@@ -3,6 +3,7 @@ import { setUser, readConfig } from "./config";
 import type { Config } from "./config";
 import type { CommandHandler, CommandsRegistry } from "./commands";
 import {
+  handlerAggregator,
   handlerLogin,
   handlerRegister,
   handlerReset,
@@ -16,6 +17,7 @@ async function main() {
   await registerCommand(commands, "register", handlerRegister);
   await registerCommand(commands, "reset", handlerReset);
   await registerCommand(commands, "users", handlerUsers);
+  await registerCommand(commands, "agg", handlerAggregator);
   const args = argv.slice(2);
   if (args.length < 1) {
     console.log("Not enough arguments provided");
