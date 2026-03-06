@@ -1,8 +1,18 @@
 import { log } from "console";
 import { readConfig, setUser } from "./config";
-import { createUser, getUser, getUsers, resetDb } from "./lib/db/queries/users";
+import {
+  createUser,
+  getUser,
+  getUserById,
+  getUsers,
+  resetDb,
+} from "./lib/db/queries/users";
 import { fetchFeed } from "./feed";
+import { feeds, users } from "./schema";
+import { createFeed, getFeeds } from "./lib/db/queries/feeds";
 
+export type Feed = typeof feeds.$inferSelect;
+export type User = typeof users.$inferSelect;
 export type CommandHandler = (
   cmdName: string,
   ...args: string[]
@@ -72,4 +82,32 @@ export async function runCommand(
     throw new Error(`Unknown command: ${handler}`);
   }
   await handler(cmdName, ...args);
+}
+export async function handlerFeed(cmdName: string, ...args: string[]) {
+  if (!args[1] || !args[2]) {
+    console.log("please provide name and url.");
+    process.exit(1);
+  }
+  const fullUser = await getUser(readConfig().currentUserName);
+  await createFeed(args[1], args[2], fullUser.id);
+}
+function printFeed(feed: Feed, user: User) {
+  console.log(`* ID:            ${feed.id}`);
+  console.log(`* Created:       ${feed.createdAt}`);
+  console.log(`* Updated:       ${feed.updatedAt}`);
+  console.log(`* name:          ${feed.name}`);
+  console.log(`* URL:           ${feed.url}`);
+  console.log(`* User:          ${user.name}`);
+}
+
+export async function handlerFeeds(cmdName: string, ...args: string[]) {
+  const allFeeds = await getFeeds();
+  for (const feed of allFeeds) {
+    const user = await getUserById(feed.user_id);
+    if (!user) {
+      throw new Error(`Failed to find usr for feed ${feed.id}`);
+    }
+    printFeed(feed, user);
+    console.log("=================================");
+  }
 }

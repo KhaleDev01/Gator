@@ -4,10 +4,13 @@ import type { Config } from "./config";
 import type { CommandHandler, CommandsRegistry } from "./commands";
 import {
   handlerAggregator,
+  handlerFeed,
+  handlerFeeds,
   handlerLogin,
   handlerRegister,
   handlerReset,
   handlerUsers,
+  printFeed,
   registerCommand,
   runCommand,
 } from "./commands";
@@ -18,6 +21,8 @@ async function main() {
   await registerCommand(commands, "reset", handlerReset);
   await registerCommand(commands, "users", handlerUsers);
   await registerCommand(commands, "agg", handlerAggregator);
+  await registerCommand(commands, "addfeed", handlerFeed);
+  await registerCommand(commands, "feeds", handlerFeeds);
   const args = argv.slice(2);
   if (args.length < 1) {
     console.log("Not enough arguments provided");
