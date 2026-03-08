@@ -1,4 +1,3 @@
-import { PromiseOf } from "drizzle-orm";
 import { XMLParser } from "fast-xml-parser";
 
 type RSSFeed = {

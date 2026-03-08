@@ -6,11 +6,12 @@ import {
   handlerAggregator,
   handlerFeed,
   handlerFeeds,
+  handlerFollow,
+  handlerFollowing,
   handlerLogin,
   handlerRegister,
   handlerReset,
   handlerUsers,
-  printFeed,
   registerCommand,
   runCommand,
 } from "./commands";
@@ -23,6 +24,8 @@ async function main() {
   await registerCommand(commands, "agg", handlerAggregator);
   await registerCommand(commands, "addfeed", handlerFeed);
   await registerCommand(commands, "feeds", handlerFeeds);
+  await registerCommand(commands, "follow", handlerFollow);
+  await registerCommand(commands, "following", handlerFollowing);
   const args = argv.slice(2);
   if (args.length < 1) {
     console.log("Not enough arguments provided");

@@ -9,7 +9,11 @@ import {
 } from "./lib/db/queries/users";
 import { fetchFeed } from "./feed";
 import { feeds, users } from "./schema";
-import { createFeed, getFeeds } from "./lib/db/queries/feeds";
+import { createFeed, getFeedByUrl, getFeeds } from "./lib/db/queries/feeds";
+import {
+  createFeedFollow,
+  getFeedFollowsForUser,
+} from "./lib/db/queries/feed_follow";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -89,7 +93,8 @@ export async function handlerFeed(cmdName: string, ...args: string[]) {
     process.exit(1);
   }
   const fullUser = await getUser(readConfig().currentUserName);
-  await createFeed(args[1], args[2], fullUser.id);
+  const feed = await createFeed(args[1], args[2], fullUser.id);
+  await createFeedFollow(fullUser.id, feed.id);
 }
 function printFeed(feed: Feed, user: User) {
   console.log(`* ID:            ${feed.id}`);
@@ -99,7 +104,26 @@ function printFeed(feed: Feed, user: User) {
   console.log(`* URL:           ${feed.url}`);
   console.log(`* User:          ${user.name}`);
 }
-
+export async function handlerFollow(cmdName: string, ...args: string[]) {
+  if (!args[1]) {
+    throw new Error("Please provide a url.");
+  }
+  const fullUser = await getUser(readConfig().currentUserName);
+  const feed = await getFeedByUrl(args[1]);
+  if (!feed) {
+    throw new Error("feed not found");
+  }
+  const feedFollow = await createFeedFollow(fullUser.id, feed.id);
+  console.log(`Feed: ${feed.name} has been followed by ${fullUser.name}`);
+}
+export async function handlerFollowing(cmdName: string, ...args: string[]) {
+  const feedsFollows = await getFeedFollowsForUser(
+    readConfig().currentUserName,
+  );
+  for (const follow of feedsFollows) {
+    console.log(`Feed: ${follow.feedName}`);
+  }
+}
 export async function handlerFeeds(cmdName: string, ...args: string[]) {
   const allFeeds = await getFeeds();
   for (const feed of allFeeds) {
