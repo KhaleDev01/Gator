@@ -17,6 +17,7 @@ import {
 } from "./lib/db/queries/feed_follow";
 import { parseDuration } from "./utils";
 import { scrapeFeeds } from "./scraper";
+import { getPostsForUser } from "./lib/db/queries/posts";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -180,5 +181,22 @@ export async function handlerFeeds(cmdName: string, ...args: string[]) {
     }
     printFeed(feed, user);
     console.log("=================================");
+  }
+}
+export async function handlerBrowse(cmdName: string, ...args: string[]) {
+  const limit = args[1] ? parseInt(args[1]) : 2;
+
+  const user = await getUser(readConfig().currentUserName);
+  if (!user) {
+    throw new Error("no user logged in");
+  }
+
+  const userPosts = await getPostsForUser(user.id, limit);
+  for (const post of userPosts) {
+    console.log(`Title: ${post.title}`);
+    console.log(`URL: ${post.url}`);
+    console.log(`Published: ${post.publishedAt}`);
+    console.log(`Description: ${post.description}`);
+    console.log("---");
   }
 }
