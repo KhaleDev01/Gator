@@ -60,3 +60,6 @@ export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
     },
   };
 }
+export async function markFeedFetched(feedId: string) {
+  await markFeedFetched(feedId);
+}

@@ -1,8 +1,9 @@
 import { db } from "..";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { feed_follows, feeds, users } from "src/schema";
 import { getUser } from "./users";
 import { readConfig } from "src/config";
+import { getFeedByUrl } from "./feeds";
 export async function createFeedFollow(user_id: string, feed_id: string) {
   const [newFeedFollow] = await db
     .insert(feed_follows)
@@ -41,4 +42,12 @@ export async function getFeedFollowsForUser(userName: string) {
     .innerJoin(feeds, eq(feed_follows.feed_id, feeds.id))
     .where(eq(feed_follows.user_id, fullUser.id));
   return result;
+}
+export async function deleteFeedFollow(user_id: string, url: string) {
+  const feed = await getFeedByUrl(url);
+  await db
+    .delete(feed_follows)
+    .where(
+      and(eq(feed_follows.user_id, user_id), eq(feed_follows.feed_id, feed.id)),
+    );
 }

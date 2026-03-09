@@ -4,6 +4,7 @@ import type { Config } from "./config";
 import type { CommandHandler, CommandsRegistry } from "./commands";
 import {
   handlerAggregator,
+  handlerBrowse,
   handlerFeed,
   handlerFeeds,
   handlerFollow,
@@ -11,10 +12,12 @@ import {
   handlerLogin,
   handlerRegister,
   handlerReset,
+  handlerUnfollow,
   handlerUsers,
   registerCommand,
   runCommand,
 } from "./commands";
+import { middlewareLoggedIn } from "./middleware";
 async function main() {
   const commands: CommandsRegistry = {};
   await registerCommand(commands, "login", handlerLogin);
@@ -22,10 +25,20 @@ async function main() {
   await registerCommand(commands, "reset", handlerReset);
   await registerCommand(commands, "users", handlerUsers);
   await registerCommand(commands, "agg", handlerAggregator);
-  await registerCommand(commands, "addfeed", handlerFeed);
+  await registerCommand(commands, "addfeed", middlewareLoggedIn(handlerFeed));
   await registerCommand(commands, "feeds", handlerFeeds);
-  await registerCommand(commands, "follow", handlerFollow);
-  await registerCommand(commands, "following", handlerFollowing);
+  await registerCommand(commands, "follow", middlewareLoggedIn(handlerFollow));
+  await registerCommand(commands, "browse", handlerBrowse);
+  await registerCommand(
+    commands,
+    "unfollow",
+    middlewareLoggedIn(handlerUnfollow),
+  );
+  await registerCommand(
+    commands,
+    "following",
+    middlewareLoggedIn(handlerFollowing),
+  );
   const args = argv.slice(2);
   if (args.length < 1) {
     console.log("Not enough arguments provided");

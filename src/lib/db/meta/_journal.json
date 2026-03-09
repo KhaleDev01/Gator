@@ -22,6 +22,20 @@
       "when": 1772761661776,
       "tag": "0002_narrow_maelstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773006438519,
+      "tag": "0003_wet_karnak",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773015148199,
+      "tag": "0004_glossy_silk_fever",
+      "breakpoints": true
     }
   ]
 }

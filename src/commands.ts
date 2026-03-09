@@ -12,8 +12,11 @@ import { feeds, users } from "./schema";
 import { createFeed, getFeedByUrl, getFeeds } from "./lib/db/queries/feeds";
 import {
   createFeedFollow,
+  deleteFeedFollow,
   getFeedFollowsForUser,
 } from "./lib/db/queries/feed_follow";
+import { parseDuration } from "./utils";
+import { scrapeFeeds } from "./scraper";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -73,6 +76,24 @@ export async function handlerUsers(cmdName: string, ...args: string[]) {
   }
 }
 export async function handlerAggregator(cmdName: string, ...args: string[]) {
+  if (!args[1]) {
+    throw new Error("please provide a time between requests e.g. 1s, 1m, 1h");
+  }
+  const timeBetweenRequests = parseDuration(args[1]);
+  console.log(`Collecting feeds every ${args[1]}`);
+  scrapeFeeds().catch(console.error);
+  const interval = setInterval(() => {
+    scrapeFeeds().catch(console.error);
+  }, timeBetweenRequests);
+
+  await new Promise<void>((resolve) => {
+    process.on("SIGINT", () => {
+      console.log("shutting down feed aggregator...");
+      clearInterval(interval);
+      resolve();
+    });
+  });
+
   const res = await fetchFeed("https://www.wagslane.dev/index.xml");
   console.log(JSON.stringify(res, null, 2));
 }
@@ -87,7 +108,14 @@ export async function runCommand(
   }
   await handler(cmdName, ...args);
 }
-export async function handlerFeed(cmdName: string, ...args: string[]) {
+export async function handlerFeed(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) {
+  console.log(args[1]);
+
+  console.log(args[2]);
   if (!args[1] || !args[2]) {
     console.log("please provide name and url.");
     process.exit(1);
@@ -95,6 +123,7 @@ export async function handlerFeed(cmdName: string, ...args: string[]) {
   const fullUser = await getUser(readConfig().currentUserName);
   const feed = await createFeed(args[1], args[2], fullUser.id);
   await createFeedFollow(fullUser.id, feed.id);
+  console.log(user);
 }
 function printFeed(feed: Feed, user: User) {
   console.log(`* ID:            ${feed.id}`);
@@ -104,7 +133,21 @@ function printFeed(feed: Feed, user: User) {
   console.log(`* URL:           ${feed.url}`);
   console.log(`* User:          ${user.name}`);
 }
-export async function handlerFollow(cmdName: string, ...args: string[]) {
+export async function handlerUnfollow(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) {
+  if (!args[1]) {
+    throw new Error("Please provide a url.");
+  }
+  await deleteFeedFollow(user.id, args[1]);
+}
+export async function handlerFollow(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) {
   if (!args[1]) {
     throw new Error("Please provide a url.");
   }
@@ -116,7 +159,11 @@ export async function handlerFollow(cmdName: string, ...args: string[]) {
   const feedFollow = await createFeedFollow(fullUser.id, feed.id);
   console.log(`Feed: ${feed.name} has been followed by ${fullUser.name}`);
 }
-export async function handlerFollowing(cmdName: string, ...args: string[]) {
+export async function handlerFollowing(
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) {
   const feedsFollows = await getFeedFollowsForUser(
     readConfig().currentUserName,
   );
